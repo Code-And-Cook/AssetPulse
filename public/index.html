@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AssetPulse — Tokenized Infrastructure Monitoring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #12151b;
+    --bg-elevated: #181c24;
+    --card-border: #262b35;
+    --divider: #21252e;
+    --text: #edf0f4;
+    --text-muted: #93a0b0;
+    --text-faint: #5c6577;
+    --accent-solar: #f2a63b;
+    --accent-solar-soft: rgba(242, 166, 59, 0.14);
+    --accent-wind: #5fc4d1;
+    --accent-wind-soft: rgba(95, 196, 209, 0.14);
+    --status-healthy: #46b382;
+    --status-healthy-soft: rgba(70, 179, 130, 0.14);
+    --status-critical: #e2555b;
+    --status-critical-soft: rgba(226, 85, 91, 0.16);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 36px 20px 64px;
+  }
+
+  header.brand {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    letter-spacing: -0.01em;
+  }
+
+  .tagline {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+  }
+
+  /* Portfolio strip */
+  .portfolio-strip {
+    margin-top: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 18px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+  }
+
+  .portfolio-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .portfolio-value span {
+    color: var(--text-faint);
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 0.82rem;
+    margin-left: 8px;
+  }
+
+  .portfolio-flag {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot.healthy { background: var(--status-healthy); }
+  .dot.critical { background: var(--status-critical); }
+
+  /* Tabs */
+  .tabs {
+    margin-top: 18px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: transparent;
+    border: 1px solid var(--card-border);
+    color: var(--text-muted);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .tab:hover { border-color: var(--text-faint); color: var(--text); }
+  .tab.active {
+    border-color: var(--asset-accent, var(--accent-solar));
+    color: var(--text);
+    background: var(--bg-elevated);
+  }
+
+  /* Hero card */
+  .card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 22px 22px 20px;
+    margin-top: 16px;
+  }
+
+  .asset-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .asset-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+  }
+
+  .asset-location {
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    margin-top: 2px;
+  }
+
+  .ownership {
+    text-align: right;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .ownership strong { color: var(--text); font-weight: 600; }
+
+  .hero-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .status-block { display: flex; align-items: center; gap: 10px; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .status-pill.healthy { background: var(--status-healthy-soft); color: var(--status-healthy); }
+  .status-pill.critical {
+    background: var(--status-critical-soft);
+    color: var(--status-critical);
+    animation: pulse-critical 1.6s ease-in-out infinite;
+  }
+
+  @keyframes pulse-critical {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(226, 85, 91, 0.35); }
+    50% { box-shadow: 0 0 0 6px rgba(226, 85, 91, 0); }
+  }
+
+  .status-pill .dot { width: 7px; height: 7px; }
+
+  #sparkline { display: block; }
+  #sparkline path {
+    transition: d 0.4s ease;
+  }
+
+  .metrics {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .metric {
+    border-top: 1px solid var(--divider);
+    padding-top: 10px;
+  }
+
+  .metric-label {
+    font-size: 0.76rem;
+    color: var(--text-faint);
+  }
+
+  .metric-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+
+  button.sim-btn {
+    margin-top: 22px;
+    width: 100%;
+    background: var(--accent-solar);
+    color: #1a1305;
+    border: none;
+    padding: 13px 18px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.92rem;
+    transition: filter 0.15s ease;
+  }
+  button.sim-btn:hover { filter: brightness(1.08); }
+  button.sim-btn:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+  button.sim-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+  /* Ledger */
+  .ledger-card {
+    margin-top: 18px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 20px 22px 6px;
+  }
+
+  .ledger-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .ledger-sub {
+    color: var(--text-faint);
+    font-size: 0.78rem;
+    margin-top: 2px;
+  }
+
+  .ledger-list { margin-top: 8px; }
+
+  .ledger-item {
+    padding: 14px 0;
+    border-top: 1px solid var(--divider);
+    display: flex;
+    gap: 12px;
+  }
+
+  .ledger-marker { padding-top: 5px; }
+
+  .ledger-body { flex: 1; min-width: 0; }
+
+  .ledger-event {
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+  .ledger-event .status-word {
+    font-weight: 600;
+  }
+  .ledger-event .status-word.healthy { color: var(--status-healthy); }
+  .ledger-event .status-word.critical { color: var(--status-critical); }
+
+  .ledger-meta {
+    margin-top: 4px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ledger-tx {
+    margin-top: 5px;
+    font-size: 0.74rem;
+    color: var(--text-faint);
+    word-break: break-all;
+  }
+  .ledger-tx .badge {
+    display: inline-block;
+    background: var(--divider);
+    color: var(--text-muted);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-right: 6px;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+  }
+
+  footer.note {
+    margin-top: 24px;
+    color: var(--text-faint);
+    font-size: 0.76rem;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .ownership { text-align: left; }
+    .asset-heading { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="brand">
+    <div>
+      <div class="wordmark">AssetPulse</div>
+      <div class="tagline">Real-world infrastructure, verified on Hedera</div>
+    </div>
+  </header>
+
+  <div class="portfolio-strip">
+    <div class="portfolio-value" id="portfolioValue">—</div>
+    <div class="portfolio-flag" id="portfolioFlag"></div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="card">
+    <div class="asset-heading">
+      <div>
+        <div class="asset-name" id="assetName">—</div>
+        <div class="asset-location" id="assetLocation">—</div>
+      </div>
+      <div class="ownership" id="ownership">—</div>
+    </div>
+
+    <div class="hero-row">
+      <div class="status-block">
+        <span class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">—</span></span>
+      </div>
+      <svg id="sparkline" width="160" height="44" viewBox="0 0 160 44"></svg>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Temperature</div>
+        <div class="metric-value" id="temp">—</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Efficiency</div>
+        <div class="metric-value" id="eff">—</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Maintenance</div>
+        <div class="metric-value" id="maint" style="font-size:0.95rem;">—</div>
+      </div>
+    </div>
+
+    <button class="sim-btn" id="simBtn">Simulate equipment failure</button>
+  </div>
+
+  <div class="ledger-card">
+    <div class="ledger-title">Condition history</div>
+    <div class="ledger-sub">Every reading recorded to a Hedera Consensus Service topic</div>
+    <div class="ledger-list" id="history"></div>
+  </div>
+
+  <footer class="note">Demo data — telemetry and consensus timestamps are simulated for this walkthrough.</footer>
+</div>
+
+<script>
+// ---------- Mock asset & HCS data engine ----------
+
+const FAILURE_EVENTS = [
+  "Inverter fault detected — output dropped sharply",
+  "Panel string underperforming, string 4B offline",
+  "Cooling system alarm triggered",
+  "Grid-tie breaker tripped unexpectedly",
+];
+
+const HEALTHY_EVENTS = [
+  "Routine telemetry reading",
+  "Scheduled sensor check-in",
+  "Output within expected range",
+];
+
+function randRange(min, max) { return Math.random() * (max - min) + min; }
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+function makeTxId(topicSeq, ts) {
+  const nanos = Math.floor(Math.random() * 900000000) + 100000000;
+  return `0.0.${topicSeq}@${ts}.${nanos}`;
+}
+
+function addReading(asset, opts = {}) {
+  const last = asset.history[asset.history.length - 1];
+  const isCritical = !!opts.critical;
+  let temp, eff, event, status;
+
+  if (isCritical) {
+    temp = clamp((last?.temperature ?? asset.baseTemp) + randRange(14, 24), 20, 98);
+    eff = clamp((last?.efficiency ?? asset.baseEff) - randRange(22, 38), 5, 100);
+    event = FAILURE_EVENTS[Math.floor(Math.random() * FAILURE_EVENTS.length)];
+    status = "CRITICAL";
+  } else {
+    temp = clamp((last?.temperature ?? asset.baseTemp) + randRange(-1.5, 1.5), 20, 55);
+    eff = clamp((last?.efficiency ?? asset.baseEff) + randRange(-1.5, 1.5), 70, 99);
+    event = HEALTHY_EVENTS[Math.floor(Math.random() * HEALTHY_EVENTS.length)];
+    status = "HEALTHY";
+  }
+
+  const ts = Math.floor(Date.now() / 1000);
+  const entry = {
+    status,
+    temperature: Math.round(temp * 10) / 10,
+    efficiency: Math.round(eff * 10) / 10,
+    event,
+    consensusTimestamp: ts,
+    txId: makeTxId(asset.topicSeq, ts),
+  };
+
+  asset.history.push(entry);
+  if (asset.history.length > 10) asset.history.shift();
+  return entry;
+}
+
+function seedHistory(asset, count) {
+  const now = Math.floor(Date.now() / 1000);
+  for (let i = count; i > 0; i--) {
+    const entry = addReading(asset, { critical: false });
+    // backdate seeded entries so they read as history, not "just now"
+    entry.consensusTimestamp = now - i * 420 - Math.floor(randRange(0, 60));
+  }
+}
+
+const ASSETS = [
+  {
+    id: "solar-001",
+    name: "Solar Farm #001",
+    location: "Nye County, Nevada",
+    type: "solar",
+    accent: "var(--accent-solar)",
+    topicSeq: 5238841,
+    totalTokens: 100000,
+    ownedTokens: 12500,
+    tokenPrice: 48.2,
+    baseTemp: 41,
+    baseEff: 94,
+    maintenance: "Next service: Oct 12",
+    history: [],
+  },
+  {
+    id: "solar-002",
+    name: "Solar Farm #002",
+    location: "Maricopa County, Arizona",
+    type: "solar",
+    accent: "var(--accent-solar)",
+    topicSeq: 5238902,
+    totalTokens: 80000,
+    ownedTokens: 6000,
+    tokenPrice: 52.1,
+    baseTemp: 46,
+    baseEff: 91,
+    maintenance: "Next service: Nov 3",
+    history: [],
+  },
+  {
+    id: "wind-003",
+    name: "Wind Farm #003",
+    location: "West Texas",
+    type: "wind",
+    accent: "var(--accent-wind)",
+    topicSeq: 5239110,
+    totalTokens: 150000,
+    ownedTokens: 30000,
+    tokenPrice: 31.75,
+    baseTemp: 24,
+    baseEff: 88,
+    maintenance: "Next service: Sep 29",
+    history: [],
+  },
+];
+
+ASSETS.forEach(a => seedHistory(a, 6));
+
+let activeId = ASSETS[0].id;
+
+// ---------- Rendering ----------
+
+function activeAsset() { return ASSETS.find(a => a.id === activeId); }
+function latest(asset) { return asset.history[asset.history.length - 1]; }
+
+function fmtMoney(n) {
+  return "$" + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+
+function fmtAgo(ts) {
+  const s = Math.floor(Date.now() / 1000) - ts;
+  if (s < 60) return "just now";
+  if (s < 3600) return Math.floor(s / 60) + " min ago";
+  if (s < 86400) return Math.floor(s / 3600) + " hr ago";
+  return new Date(ts * 1000).toLocaleDateString();
+}
+
+function renderPortfolio() {
+  let total = 0;
+  let anyCritical = false;
+  ASSETS.forEach(a => {
+    total += a.ownedTokens * a.tokenPrice;
+    if (latest(a).status === "CRITICAL") anyCritical = true;
+  });
+  document.getElementById("portfolioValue").innerHTML =
+    fmtMoney(total) + `<span>owned across ${ASSETS.length} assets</span>`;
+
+  const flag = document.getElementById("portfolioFlag");
+  flag.innerHTML = anyCritical
+    ? `<span class="dot critical"></span> attention needed on one or more assets`
+    : `<span class="dot healthy"></span> all systems healthy`;
+}
+
+function renderTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = "";
+  ASSETS.forEach(a => {
+    const btn = document.createElement("button");
+    btn.className = "tab" + (a.id === activeId ? " active" : "");
+    btn.style.setProperty("--asset-accent", a.accent);
+    const dotClass = latest(a).status === "CRITICAL" ? "critical" : "healthy";
+    btn.innerHTML = `<span class="dot ${dotClass}"></span>${a.name}`;
+    btn.addEventListener("click", () => {
+      activeId = a.id;
+      renderAll();
+    });
+    tabs.appendChild(btn);
+  });
+}
+
+function buildSparklinePath(values) {
+  if (values.length < 2) return "";
+  const w = 160, h = 44, pad = 4;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = max - min || 1;
+  const step = (w - pad * 2) / (values.length - 1);
+  return values
+    .map((v, i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return (i === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1);
+    })
+    .join(" ");
+}
+
+function renderSparkline(asset) {
+  const values = asset.history.map(h => h.efficiency);
+  const svg = document.getElementById("sparkline");
+  const d = buildSparklinePath(values);
+  const color = latest(asset).status === "CRITICAL" ? "var(--status-critical)" : asset.accent;
+  svg.innerHTML = `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />`;
+}
+
+function renderCard() {
+  const a = activeAsset();
+  const last = latest(a);
+  const pct = ((a.ownedTokens / a.totalTokens) * 100).toFixed(1);
+
+  document.getElementById("assetName").textContent = a.name;
+  document.getElementById("assetLocation").textContent = a.location;
+  document.getElementById("ownership").innerHTML =
+    `<strong>${a.ownedTokens.toLocaleString()}</strong> / ${a.totalTokens.toLocaleString()} tokens<br>${pct}% owned · ${fmtMoney(a.ownedTokens * a.tokenPrice)}`;
+
+  const isCritical = last.status === "CRITICAL";
+  const pill = document.getElementById("statusPill");
+  pill.className = "status-pill " + (isCritical ? "critical" : "healthy");
+  pill.querySelector(".dot").className = "dot " + (isCritical ? "critical" : "healthy");
+  document.getElementById("statusText").textContent = isCritical ? "Critical" : "Healthy";
+
+  document.getElementById("temp").textContent = last.temperature + "°C";
+  document.getElementById("eff").textContent = last.efficiency + "%";
+  document.getElementById("maint").textContent = isCritical ? "Service required now" : a.maintenance;
+
+  renderSparkline(a);
+}
+
+function renderHistory() {
+  const a = activeAsset();
+  const list = document.getElementById("history");
+  list.innerHTML = a.history
+    .slice()
+    .reverse()
+    .map(e => {
+      const isCritical = e.status === "CRITICAL";
+      const dotClass = isCritical ? "critical" : "healthy";
+      const wordClass = isCritical ? "critical" : "healthy";
+      return `
+        <div class="ledger-item">
+          <div class="ledger-marker"><span class="dot ${dotClass}"></span></div>
+          <div class="ledger-body">
+            <div class="ledger-event"><span class="status-word ${wordClass}">${e.status === "CRITICAL" ? "Critical" : "Healthy"}</span> — ${e.event}</div>
+            <div class="ledger-meta">${e.temperature}°C · ${e.efficiency}% efficiency · ${fmtAgo(e.consensusTimestamp)}</div>
+            <div class="ledger-tx"><span class="badge">HCS</span>${e.txId}</div>
+          </div>
+        </div>`;
+    })
+    .join("");
+}
+
+function renderAll() {
+  renderPortfolio();
+  renderTabs();
+  renderCard();
+  renderHistory();
+}
+
+// ---------- Interactions ----------
+
+document.getElementById("simBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("simBtn");
+  btn.disabled = true;
+  btn.textContent = "Submitting to HCS…";
+  await new Promise(res => setTimeout(res, 900));
+  addReading(activeAsset(), { critical: true });
+  renderAll();
+  btn.disabled = false;
+  btn.textContent = "Simulate equipment failure";
+});
+
+// Gentle live drift so the demo feels alive even before anyone clicks anything
+setInterval(() => {
+  ASSETS.forEach(a => {
+    if (latest(a).status === "HEALTHY") addReading(a, { critical: false });
+  });
+  renderAll();
+}, 7000);
+
+renderAll();
+</script>
+</body>
+</html>
